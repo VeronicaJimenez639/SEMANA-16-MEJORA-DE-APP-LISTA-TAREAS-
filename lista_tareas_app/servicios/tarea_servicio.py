@@ -1,0 +1,76 @@
+from modelos.tarea import Tarea
+
+
+class TareaServicio:
+    """
+    Gestiona la lógica de negocio de las tareas.
+    Aquí se agregan, buscan, completan y eliminan tareas.
+    """
+
+    def __init__(self):
+        self._lista_tareas = []
+        self._siguiente_identificador = 1
+
+    def agregar_tarea(self, descripcion: str) -> Tarea:
+        """
+        Crea una nueva tarea, la guarda en memoria y la retorna.
+        """
+        nueva_tarea = Tarea(self._siguiente_identificador, descripcion)
+        self._lista_tareas.append(nueva_tarea)
+        self._siguiente_identificador += 1
+        return nueva_tarea
+    
+    def listar_tareas(self) -> list:
+        """
+        Retorna una copia de la lista de tareas.
+        """
+        return self._lista_tareas.copy()
+
+    def buscar_tarea_por_identificador(self, identificador: int):
+        """
+        Busca una tarea por su identificador.
+        Retorna la tarea si existe o None si no se encuentra.
+        """
+        for tarea in self._lista_tareas:
+            if tarea.identificador == identificador:
+                return tarea
+        return None
+
+    def marcar_tarea_completada(self, identificador: int) -> bool:
+        """
+        Marca una tarea como completada.
+        Retorna True si la encontró o False si no existe.
+        """
+        tarea_encontrada = self.buscar_tarea_por_identificador(identificador)
+
+        if tarea_encontrada is not None:
+            tarea_encontrada.estado_completado = True
+            return True
+
+        return False
+
+    def desmarcar_tarea(self, identificador: int) -> bool:
+        """
+        Cambia una tarea completada nuevamente a estado pendiente.
+        Retorna True si la encontró o False si no existe.
+        """
+        tarea_encontrada = self.buscar_tarea_por_identificador(identificador)
+
+        if tarea_encontrada is not None:
+            tarea_encontrada.estado_completado = False
+            return True
+
+        return False
+
+    def eliminar_tarea(self, identificador: int) -> bool:
+        """
+        Elimina una tarea por su identificador.
+        Retorna True si la eliminó o False si no existe.
+        """
+        tarea_encontrada = self.buscar_tarea_por_identificador(identificador)
+
+        if tarea_encontrada is not None:
+            self._lista_tareas.remove(tarea_encontrada)
+            return True
+
+        return False    
