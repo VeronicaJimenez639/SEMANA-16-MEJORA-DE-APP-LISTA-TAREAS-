@@ -151,5 +151,33 @@ class AppTkinter:
             foreground="black"
         )
 
+    # ==========================================================
+    # REGISTRO DE EVENTOS
+    # ==========================================================
+    def _registrar_eventos(self):
+        """
+        Registra los eventos de teclado y ratón.
+        """
+        # Enter en el Entry
+        self.entry_descripcion.bind("<Return>", self._evento_enter_anadir)
+
+        # Selección y doble clic en la tabla
+        self.treeview_tareas.bind("<<TreeviewSelect>>", self._evento_seleccionar_tarea)
+        self.treeview_tareas.bind("<Double-1>", self._evento_doble_click_marcar)
+
+        # Atajos globales
+        self.root.bind_all("<KeyPress-c>", self._evento_tecla_c_marcar)
+        self.root.bind_all("<KeyPress-C>", self._evento_tecla_c_marcar)
+
+        self.root.bind_all("<Control-d>", self._evento_ctrl_d_eliminar)
+        self.root.bind_all("<Control-D>", self._evento_ctrl_d_eliminar)
+
+        self.root.bind_all("<Escape>", self._evento_escape_cerrar)
+
+        # Confirmar cierre con la X
+        self.root.protocol("WM_DELETE_WINDOW", self._cerrar_aplicacion)
+
+
+
 
 
