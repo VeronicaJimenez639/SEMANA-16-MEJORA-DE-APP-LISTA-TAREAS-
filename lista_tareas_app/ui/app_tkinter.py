@@ -177,6 +177,160 @@ class AppTkinter:
         # Confirmar cierre con la X
         self.root.protocol("WM_DELETE_WINDOW", self._cerrar_aplicacion)
 
+    # ==========================================================
+    # MÉTODOS PRINCIPALES
+    # ==========================================================
+    def _anadir_tarea(self):
+        """
+        Crea una nueva tarea con el texto ingresado.
+        """
+        descripcion_ingresada = self.descripcion_var.get().strip()
+
+        if not descripcion_ingresada:
+            self.lbl_estado.config(text="Debe escribir una descripción para la tarea.")
+            messagebox.showwarning("Aviso", "Debe escribir una descripción para la tarea.")
+            self.entry_descripcion.focus()
+            return
+
+        try:
+            tarea_nueva = self.tarea_servicio.agregar_tarea(descripcion_ingresada)
+            self._insertar_tarea_en_treeview(tarea_nueva)
+            self.descripcion_var.set("")
+            self.entry_descripcion.focus()
+            self.lbl_estado.config(text="Tarea añadida correctamente.")
+        except ValueError as error:
+            self.lbl_estado.config(text=f"Error: {error}")
+            messagebox.showerror("Error", str(error))
+
+    def _insertar_tarea_en_treeview(self, tarea):
+        """
+        Inserta una tarea en el Treeview.
+        """
+        estado_texto = "Pendiente"
+        etiquetas = ("pendiente",)
+
+        if tarea.estado_completado:
+            estado_texto = "[Hecho]"
+            etiquetas = ("completada",)
+
+        self.treeview_tareas.insert(
+            "",
+            "end",
+            iid=str(tarea.identificador),
+            values=(tarea.descripcion, estado_texto),
+            tags=etiquetas
+        )
+
+    def _obtener_identificador_seleccionado(self):
+        """
+        Obtiene el identificador de la tarea seleccionada.
+        Retorna None si no hay ninguna seleccionada.
+        """
+        seleccion = self.treeview_tareas.selection()
+
+        if not seleccion:
+            return None
+
+        return int(seleccion[0])
+
+    def _marcar_tarea_completada(self):
+        """
+        Marca como completada la tarea seleccionada.
+        """
+        identificador_seleccionado = self._obtener_identificador_seleccionado()
+
+        if identificador_seleccionado is None:
+            self.lbl_estado.config(text="Seleccione una tarea para marcarla como completada.")
+            messagebox.showwarning("Aviso", "Seleccione una tarea para marcarla como completada.")
+            return
+
+        fue_marcada = self.tarea_servicio.marcar_tarea_completada(identificador_seleccionado)
+
+        if fue_marcada:
+            tarea_encontrada = self.tarea_servicio.buscar_tarea_por_identificador(
+                identificador_seleccionado
+            )
+
+            self.treeview_tareas.item(
+                str(identificador_seleccionado),
+                values=(tarea_encontrada.descripcion, "[Hecho]"),
+                tags=("completada",)
+            )
+
+            self.treeview_tareas.selection_remove(self.treeview_tareas.selection())
+            self.lbl_estado.config(text="Tarea marcada como completada.")
+        else:
+            self.lbl_estado.config(text="No se pudo marcar la tarea seleccionada.")
+            messagebox.showerror("Error", "No se pudo marcar la tarea seleccionada.")
+
+    def _desmarcar_tarea(self):
+        """
+        Devuelve una tarea completada nuevamente al estado pendiente.
+        """
+        identificador_seleccionado = self._obtener_identificador_seleccionado()
+
+        if identificador_seleccionado is None:
+            self.lbl_estado.config(text="Seleccione una tarea para desmarcarla.")
+            messagebox.showwarning("Aviso", "Seleccione una tarea para desmarcarla.")
+            return
+
+        fue_desmarcada = self.tarea_servicio.desmarcar_tarea(identificador_seleccionado)
+
+        if fue_desmarcada:
+            tarea_encontrada = self.tarea_servicio.buscar_tarea_por_identificador(
+                identificador_seleccionado
+            )
+
+            self.treeview_tareas.item(
+                str(identificador_seleccionado),
+                values=(tarea_encontrada.descripcion, "Pendiente"),
+                tags=("pendiente",)
+            )
+
+            self.treeview_tareas.selection_remove(self.treeview_tareas.selection())
+            self.lbl_estado.config(text="Tarea desmarcada correctamente.")
+        else:
+            self.lbl_estado.config(text="No se pudo desmarcar la tarea seleccionada.")
+            messagebox.showerror("Error", "No se pudo desmarcar la tarea seleccionada.")
+
+    def _eliminar_tarea(self):
+        """
+        Elimina la tarea seleccionada.
+        """
+        identificador_seleccionado = self._obtener_identificador_seleccionado()
+
+        if identificador_seleccionado is None:
+            self.lbl_estado.config(text="Seleccione una tarea para eliminarla.")
+            messagebox.showwarning("Aviso", "Seleccione una tarea para eliminarla.")
+            return
+
+        respuesta = messagebox.askyesno(
+            "Confirmar",
+            "¿Está seguro de que desea eliminar la tarea seleccionada?"
+        )
+
+        if respuesta:
+            fue_eliminada = self.tarea_servicio.eliminar_tarea(identificador_seleccionado)
+
+            if fue_eliminada:
+                self.treeview_tareas.delete(str(identificador_seleccionado))
+                self.lbl_estado.config(text="Tarea eliminada correctamente.")
+            else:
+                self.lbl_estado.config(text="No se pudo eliminar la tarea seleccionada.")
+                messagebox.showerror("Error", "No se pudo eliminar la tarea seleccionada.")
+
+    def _cerrar_aplicacion(self):
+        """
+        Solicita confirmación antes de cerrar la aplicación.
+        """
+        respuesta = messagebox.askyesno(
+            "Salir",
+            "¿Está seguro de que desea cerrar la aplicación?"
+        )
+
+        if respuesta:
+            self.root.destroy()
+
 
 
 
