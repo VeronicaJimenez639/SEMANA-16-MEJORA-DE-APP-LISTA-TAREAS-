@@ -331,7 +331,66 @@ class AppTkinter:
         if respuesta:
             self.root.destroy()
 
+    # ==========================================================
+    # EVENTOS
+    # ==========================================================
+    def _evento_enter_anadir(self, event):
+        """
+        Evento Enter en el campo de texto.
+        """
+        self.lbl_estado.config(text="Evento Enter detectado: se intentará añadir la tarea.")
+        self._anadir_tarea()
+        return "break"
 
+    def _evento_seleccionar_tarea(self, event):
+        """
+        Evento al seleccionar una tarea del Treeview.
+        """
+        identificador = self._obtener_identificador_seleccionado()
+
+        if identificador is not None:
+            tarea = self.tarea_servicio.buscar_tarea_por_identificador(identificador)
+            if tarea is not None:
+                self.lbl_estado.config(text=f"Tarea seleccionada: {tarea.descripcion}")
+
+    def _evento_doble_click_marcar(self, event):
+        """
+        Evento doble clic sobre una fila.
+        """
+        item_seleccionado = self.treeview_tareas.identify_row(event.y)
+
+        if item_seleccionado:
+            self.treeview_tareas.selection_set(item_seleccionado)
+            self.lbl_estado.config(text="Evento doble clic detectado: se intentará completar la tarea.")
+            self._marcar_tarea_completada()
+
+    def _evento_tecla_c_marcar(self, event):
+        """
+        Marca una tarea con la tecla C.
+        """
+        # Evita conflicto si el usuario está escribiendo en el Entry.
+        if self.root.focus_get() == self.entry_descripcion:
+            return "break"
+
+        self.lbl_estado.config(text="Evento tecla C detectado: se intentará completar la tarea.")
+        self._marcar_tarea_completada()
+        return "break"
+
+    def _evento_ctrl_d_eliminar(self, event):
+        """
+        Elimina una tarea con Ctrl + D.
+        """
+        self.lbl_estado.config(text="Evento Ctrl + D detectado: se intentará eliminar la tarea.")
+        self._eliminar_tarea()
+        return "break"
+
+    def _evento_escape_cerrar(self, event):
+        """
+        Cierra la aplicación con Escape.
+        """
+        self.lbl_estado.config(text="Evento Escape detectado: se intentará cerrar la aplicación.")
+        self._cerrar_aplicacion()
+        return "break"
 
 
 
